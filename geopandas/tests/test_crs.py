@@ -36,8 +36,8 @@ def df_epsg26918():
     # Center coordinates
     # -1683723.64 6689139.23
     return _create_df(
-        x=range(-1683723, -1683723 + 10, 1),
-        y=range(6689139, 6689139 + 10, 1),
+        x=range(-1683723, -1683723 + 10),
+        y=range(6689139, 6689139 + 10),
         crs="epsg:26918",
     )
 

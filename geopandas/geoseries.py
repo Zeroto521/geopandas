@@ -138,19 +138,18 @@ class GeoSeries(GeoPandasBase, Series):
             if not data.crs:
                 # make a copy to avoid setting CRS to passed GeometryArray
                 data = data.copy()
-            else:
-                if not data.crs == crs:
-                    warnings.warn(
-                        "CRS mismatch between CRS of the passed geometries "
-                        "and 'crs'. Use 'GeoDataFrame.set_crs(crs, "
-                        "allow_override=True)' to overwrite CRS or "
-                        "'GeoSeries.to_crs(crs)' to reproject geometries. "
-                        "CRS mismatch will raise an error in the future versions "
-                        "of GeoPandas.",
-                        FutureWarning,
-                        stacklevel=2,
-                    )
-                    # TODO: raise error in 0.9 or 0.10.
+            elif data.crs != crs:
+                warnings.warn(
+                    "CRS mismatch between CRS of the passed geometries "
+                    "and 'crs'. Use 'GeoDataFrame.set_crs(crs, "
+                    "allow_override=True)' to overwrite CRS or "
+                    "'GeoSeries.to_crs(crs)' to reproject geometries. "
+                    "CRS mismatch will raise an error in the future versions "
+                    "of GeoPandas.",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                # TODO: raise error in 0.9 or 0.10.
 
         if isinstance(data, SingleBlockManager):
             if isinstance(data.blocks[0].dtype, GeometryDtype):
@@ -555,9 +554,8 @@ class GeoSeries(GeoPandasBase, Series):
     @doc(pd.Series)
     def apply(self, func, convert_dtype=True, args=(), **kwargs):
         result = super().apply(func, convert_dtype=convert_dtype, args=args, **kwargs)
-        if isinstance(result, GeoSeries):
-            if self.crs is not None:
-                result.set_crs(self.crs, inplace=True)
+        if isinstance(result, GeoSeries) and self.crs is not None:
+            result.set_crs(self.crs, inplace=True)
         return result
 
     def __finalize__(self, other, method=None, **kwargs):
@@ -919,17 +917,14 @@ class GeoSeries(GeoPandasBase, Series):
         else:
             raise ValueError("Must pass either crs or epsg.")
 
-        if not allow_override and self.crs is not None and not self.crs == crs:
+        if not allow_override and self.crs is not None and self.crs != crs:
             raise ValueError(
                 "The GeoSeries already has a CRS which is not equal to the passed "
                 "CRS. Specify 'allow_override=True' to allow replacing the existing "
                 "CRS without doing any transformation. If you actually want to "
                 "transform the geometries, use 'GeoSeries.to_crs' instead."
             )
-        if not inplace:
-            result = self.copy()
-        else:
-            result = self
+        result = self.copy() if not inplace else self
         result.crs = crs
         return result
 

@@ -71,14 +71,13 @@ def set_use_pygeos(val=None):
 
     if val is not None:
         USE_PYGEOS = bool(val)
-    else:
-        if USE_PYGEOS is None:
+    elif USE_PYGEOS is None:
 
-            USE_PYGEOS = HAS_PYGEOS
+        USE_PYGEOS = HAS_PYGEOS
 
-            env_use_pygeos = os.getenv("USE_PYGEOS", None)
-            if env_use_pygeos is not None:
-                USE_PYGEOS = bool(int(env_use_pygeos))
+        env_use_pygeos = os.getenv("USE_PYGEOS", None)
+        if env_use_pygeos is not None:
+            USE_PYGEOS = bool(int(env_use_pygeos))
 
     # validate the pygeos version
     if USE_PYGEOS:
@@ -86,7 +85,7 @@ def set_use_pygeos(val=None):
             import pygeos  # noqa
 
             # validate the pygeos version
-            if not str(pygeos.__version__) >= LooseVersion("0.8"):
+            if str(pygeos.__version__) < LooseVersion("0.8"):
                 raise ImportError(
                     "PyGEOS >= 0.6 is required, version {0} is installed".format(
                         pygeos.__version__
