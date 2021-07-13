@@ -1,8 +1,10 @@
 import contextlib
-from distutils.version import LooseVersion
 import importlib
 import os
 import warnings
+
+from distutils.version import LooseVersion
+from importlib.util import find_spec
 
 import pandas as pd
 import pyproj
@@ -38,7 +40,7 @@ PYGEOS_SHAPELY_COMPAT = None
 
 PYGEOS_GE_09 = None
 
-try:
+if find_spec("pygeos") is not None:
     import pygeos  # noqa
 
     # only automatically use pygeos if version is high enough
@@ -52,7 +54,7 @@ try:
             UserWarning,
         )
         HAS_PYGEOS = False
-except ImportError:
+else:
     HAS_PYGEOS = False
 
 
@@ -195,14 +197,8 @@ def import_optional_dependency(name: str, extra: str = ""):
 # RTree compat
 # -----------------------------------------------------------------------------
 
-HAS_RTREE = None
 RTREE_GE_094 = False
-try:
-    import rtree  # noqa
-
-    HAS_RTREE = True
-except ImportError:
-    HAS_RTREE = False
+HAS_RTREE = find_spec("rtree") is not None
 
 # -----------------------------------------------------------------------------
 # pyproj compat
