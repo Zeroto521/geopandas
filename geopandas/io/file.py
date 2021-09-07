@@ -228,22 +228,22 @@ def _read_file(filename, bbox=None, mask=None, rows=None, chunksize=None, **kwar
             columns = list(features.schema["properties"])
             if kwargs.get("ignore_geometry", False):
                 if chunksize:
-                    return (
-                        pd.DataFrame(
+                    for f_filt in chunk_filters:
+                        yield GeoDataFrame.from_features(
                             [record["properties"] for record in f_filt], columns=columns
                         )
-                        for f_filt in chunk_filters
-                    )
+
                 return pd.DataFrame(
-                    [record["properties"] for record in f_filt], columns=columns
+                    [record["properties"] for record in f_filt],
+                    columns=columns,
                 )
+
             if chunksize:
-                return (
-                    GeoDataFrame.from_features(
+                for f_filt in chunk_filters:
+                    yield GeoDataFrame.from_features(
                         f_filt, crs=crs, columns=columns + ["geometry"]
                     )
-                    for f_filt in chunk_filters
-                )
+
             return GeoDataFrame.from_features(
                 f_filt, crs=crs, columns=columns + ["geometry"]
             )
