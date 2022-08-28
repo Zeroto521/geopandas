@@ -1007,24 +1007,33 @@ class GeometryArray(ExtensionArray):
         -------
         filled : ExtensionArray with NA/NaN filled
         """
-        if method is not None:
-            raise NotImplementedError("fillna with a method is not yet supported")
+        from pandas.core.missing import clean_fill_method
 
-        mask = self.isna()
-        new_values = self.copy()
+        if value is None and method is None:
+            raise ValueError("Must specify a fill 'value' or 'method'.")
+        elif value is not None and method is not None:
+            raise ValueError("Cannot specify both 'value' and 'method'.")
 
-        if mask.any():
-            # fill with value
-            if vectorized.isna(value):
-                value = None
-            elif not isinstance(value, BaseGeometry):
-                raise NotImplementedError(
-                    "fillna currently only supports filling with a scalar geometry"
-                )
-            value = _shapely_to_geom(value)
-            new_values = new_values._fill(mask, value)
+        if value is None:
+            method = clean_fill_method(method)
+            return super().fillna(method=method, limit=limit)
+        elif isinstance(value, BaseGeometry):
+            mask = self.isna()
+            new_values = self.copy()
 
-        return new_values
+            if mask.any():
+                value = _shapely_to_geom(value)
+                new_values = new_values._fill(mask, value)
+
+            return new_values
+
+        elif isinstance(value, GeometryArray):
+            ...
+        else:
+            raise TypeError(
+                "'value' parameter must be None, a scalar geometry, or a GeoSeries, "
+                f"but you passed a {type(value).__name__!r}"
+            )
 
     def astype(self, dtype, copy=True):
         """
